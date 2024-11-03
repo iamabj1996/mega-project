@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	/* .logo {
+		@apply w-[9rem] md:w-[15rem];
+	} */
+
+	.main-btn {
+		@apply bg-primaryBrandColor text-darkTextIcons2 rounded-lg border-0 box-border cursor-pointer inline-block font-sans text-sm font-medium h-10 leading-5 list-none m-0 outline-none px-4 py-2 text-center transition-colors duration-100 select-none;
+	}
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+	width: 5px; /* Default for desktop */
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #00853d;
+	border-radius: 5px;
+	transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #006b31;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+	background: #2d2d2d;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+	background: #00a54b;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+	background: #00c25a;
+}
+
+/* Ensure smooth scrolling for the entire page */
+html {
+	scroll-behavior: smooth;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+	/* Adjust the max-width as necessary for your breakpoints */
+	::-webkit-scrollbar {
+		width: 5px; /* Wider scrollbar for mobile */
+	}
+}
