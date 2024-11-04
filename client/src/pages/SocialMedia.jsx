@@ -1,9 +1,10 @@
-import { useState, useEffect, createContext, useContext } from 'react';
-import customFetch from '../utils/customFetch';
+import React, { useState, createContext, useContext } from 'react';
 import { useLoaderData, redirect, useNavigation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { MySocialMediaContainer, SocialMediaSwitch } from '../components';
+import customFetch from '../utils/customFetch';
+import { MySocialMediaContainer } from '../components';
 import InstagramCreatorInfo from './InstagramCreatorInfo';
+import { FaYoutube, FaInstagram } from 'react-icons/fa';
 
 export const loader = async () => {
 	try {
@@ -24,11 +25,9 @@ export const action = async ({ request }) => {
 	console.log('insideData', data);
 	try {
 		if (data.platform === 'youtube') {
-			// YouTube platform-specific logic
 			const { data } = await customFetch.get('/youtube_channels/auth');
 			window.location.href = data.url;
 		} else if (data.platform === 'instagram') {
-			// Instagram platform-specific logic
 			const { data } = await customFetch.get('/instagram/auth');
 			window.location.href = data.url;
 		}
@@ -42,29 +41,44 @@ export const action = async ({ request }) => {
 
 const SocialMediaContext = createContext();
 
+const PlatformSwitch = ({ platform, togglePlatform }) => (
+	<div className='flex justify-center mb-6'>
+		<div className='flex items-center bg-lightCardBg dark:bg-darkCardBg rounded-lg p-1 shadow-md'>
+			<button
+				onClick={() => togglePlatform('youtube')}
+				className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+					platform === 'youtube'
+						? 'bg-primaryBrandColor text-white'
+						: 'text-lightTextIcons1 dark:text-darkTextIcons1 hover:bg-gray-200 dark:hover:bg-gray-700'
+				}`}
+			>
+				<FaYoutube className='mr-2' />
+				YouTube
+			</button>
+			<button
+				onClick={() => togglePlatform('instagram')}
+				className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+					platform === 'instagram'
+						? 'bg-primaryBrandColor text-white'
+						: 'text-lightTextIcons1 dark:text-darkTextIcons1 hover:bg-gray-200 dark:hover:bg-gray-700'
+				}`}
+			>
+				<FaInstagram className='mr-2' />
+				Instagram
+			</button>
+		</div>
+	</div>
+);
+
 export default function SocialMediaChannelManagement() {
 	const { youtubeChannels, instagramPages } = useLoaderData();
-	console.log('data', youtubeChannels);
-	console.log('data', instagramPages);
 	const navigation = useNavigation();
 	const isSubmitting = navigation.state === 'submitting';
 	const [platform, setPlatform] = useState('youtube');
 
-	console.log('platform', platform);
-
-	const togglePlatform = () => {
-		setTimeout(() => {
-			setPlatform(platform === 'youtube' ? 'instagram' : 'youtube');
-		}, 300);
+	const togglePlatform = (newPlatform) => {
+		setPlatform(newPlatform);
 	};
-
-	useEffect(() => {
-		const root = document.documentElement;
-		root.style.setProperty(
-			'--platform-color',
-			platform === 'youtube' ? '#FF0000' : '#E1306C'
-		);
-	}, [platform]);
 
 	return (
 		<SocialMediaContext.Provider
@@ -75,12 +89,13 @@ export default function SocialMediaChannelManagement() {
 				isSubmitting,
 				instagramPages,
 			}}
-			className='min-h-screen py-1 px-4 sm:px-6 lg:px-8 select-none '
 		>
-			<div className='max-w-7xl mx-auto mt-4'>
-				<SocialMediaSwitch />
-				{platform === 'youtube' && <MySocialMediaContainer />}
-				{platform === 'instagram' && <InstagramCreatorInfo />}
+			<div className='min-h-screen py-1 px-4 sm:px-6 lg:px-8 select-none'>
+				<div className='max-w-7xl mx-auto mt-4'>
+					<PlatformSwitch platform={platform} togglePlatform={togglePlatform} />
+					{platform === 'youtube' && <MySocialMediaContainer />}
+					{platform === 'instagram' && <InstagramCreatorInfo />}
+				</div>
 			</div>
 		</SocialMediaContext.Provider>
 	);

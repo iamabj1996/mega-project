@@ -6,7 +6,12 @@ import { createContext, useContext } from 'react';
 export const loader = async () => {
 	try {
 		const { data } = await customFetch.get('/youtube_channels/search_creators');
-		return { data };
+		const instagramResponse = await customFetch.get(
+			'/instagram/search_creators'
+		);
+		const instagramPages = instagramResponse?.data?.instagramPages;
+		console.log('data2', instagramPages);
+		return { data, instagramPages };
 	} catch (error) {
 		toast.error(error?.response?.data?.msg);
 		return redirect('/login');
@@ -16,10 +21,10 @@ export const loader = async () => {
 const AllCreatorsContext = createContext();
 
 const AllCreatorsLayout = () => {
-	const { data } = useLoaderData();
+	const { data, instagramPages } = useLoaderData();
 	return (
 		<AllCreatorsContext.Provider
-			value={{ data }}
+			value={{ data, instagramPages }}
 			className='min-h-screen bg-lightMainBg dark:bg-darkMainBg p-1 sm:p-2 md:p-1'
 		>
 			{/* <h1 className='text-3xl font-bold mb-8'>YouTube Channel Cards</h1> */}

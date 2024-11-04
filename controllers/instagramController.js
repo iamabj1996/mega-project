@@ -126,3 +126,8 @@ export const getAllInstagramPages = async (req, res) => {
 	});
 	res.status(StatusCodes.OK).json({ instagramPages });
 };
+
+export const getInstagramPagesForSearch = async (req, res) => {
+	const instagramPages = await InstagramCreator.find({});
+	res.status(StatusCodes.OK).json({ instagramPages });
+};
