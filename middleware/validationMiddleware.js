@@ -6,6 +6,7 @@ import {
 } from '../errors/customErrors.js';
 import mongoose from 'mongoose';
 import YoutubeChannel from '../models/youtubeChannelModel.js';
+import InstagramCreator from '../models/instagramCreatorModel.js';
 import BrandProfile from '../models/brandProfileModel.js';
 import User from '../models/userModel.js';
 
@@ -50,6 +51,24 @@ export const validateIdParam = withValidationErrors([
 
 		const isAdmin = req.user.role === 'admin';
 		const isOwner = req.user.userId === youtubeChannel.ownedBy.toString();
+
+		if (!isOwner && !isAdmin) {
+			throw new UnauthorizedError('Not authorized to access this route');
+		}
+	}),
+]);
+
+export const validateIdParamInstagram = withValidationErrors([
+	param('id').custom(async (value, { req }) => {
+		const isValidId = mongoose.Types.ObjectId.isValid(value);
+		if (!isValidId) throw new BadRequestError('Invalid MongoDB id');
+
+		const instagramCreator = await InstagramCreator.findById(value);
+		if (!instagramCreator)
+			throw new NotFoundError(`No youtube channel with id ${value}`);
+
+		const isAdmin = req.user.role === 'admin';
+		const isOwner = req.user.userId === instagramCreator.ownedBy.toString();
 
 		if (!isOwner && !isAdmin) {
 			throw new UnauthorizedError('Not authorized to access this route');

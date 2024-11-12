@@ -32,11 +32,26 @@ export const authorizeInstagramCallback = async (req, res) => {
 	const tokenResponse = await axios.get(tokenUrl, { params: tokenParams });
 	const accessToken = tokenResponse.data.access_token;
 
+	const longLivedTokenUrl =
+		'https://graph.facebook.com/v21.0/oauth/access_token';
+	const longLivedTokenParams = {
+		grant_type: 'fb_exchange_token',
+		client_id: process.env.FACEBOOK_APP_ID,
+		client_secret: process.env.FACEBOOK_APP_SECRET,
+		fb_exchange_token: accessToken,
+	};
+
+	const longLivedTokenResponse = await axios.get(longLivedTokenUrl, {
+		params: longLivedTokenParams,
+	});
+
+	const longLivedAccessToken = longLivedTokenResponse?.data?.access_token;
+
 	// Optionally, fetch user info with the access token
 	const userUrl =
 		'https://graph.facebook.com/me/accounts?fields=instagram_business_account,id,access_token';
 	const userParams = {
-		access_token: accessToken,
+		access_token: longLivedAccessToken,
 	};
 
 	const userResponse = await axios.get(userUrl, { params: userParams });
@@ -72,7 +87,7 @@ export const authorizeInstagramCallback = async (req, res) => {
 			'reach,total_interactions,accounts_engaged,likes,comments,shares,saves,replies,profile_links_taps',
 		metric_type: 'total_value',
 		period: 'day',
-		access_token: accessToken,
+		access_token: longLivedAccessToken,
 	};
 
 	const insightsResponse = await axios.get(insightsUrl, {
@@ -89,7 +104,7 @@ export const authorizeInstagramCallback = async (req, res) => {
 		period: 'lifetime',
 		timeframe: 'this_month',
 		breakdown: 'age,city,country,gender',
-		access_token: accessToken,
+		access_token: longLivedAccessToken,
 	};
 
 	const demographicsResponse = await axios.get(demographicsUrl, {
@@ -208,4 +223,12 @@ export const getInstagramPagesForSearch = async (req, res) => {
 		instagramCreators,
 		currentPage: page,
 	});
+};
+
+export const deleteInstagramCreator = async (req, res) => {
+	const { id } = req.params;
+	await InstagramCreator.findByIdAndDelete(id);
+	res
+		.status(StatusCodes.OK)
+		.json({ msg: 'Instagram creator data has been deleted permanently' });
 };
