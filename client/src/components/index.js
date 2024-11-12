@@ -11,3 +11,5 @@ export { default as MySocialMediaContainer } from './MySocialMediaContainer';
 export { default as SingleYtChannelComponent } from './SingleYtChannelComponent';
 export { default as SocialMediaSwitch } from './SocialMediaSwitch';
 export { default as InstagramCreatorCard } from './InstagramCreatorCard';
+export { default as CategorySelect } from './CategorySelect';
+export { default as MultipleCategorySelect } from './MultipleCategorySelect';

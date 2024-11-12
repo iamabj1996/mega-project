@@ -14,17 +14,24 @@ const Landing = () => {
 						<h1 className='text-primaryBrandColor'>Connecting</h1>
 						<h1>Content Creator and Brand</h1>
 					</div>
-					<div className='flex justify-center space-x-5'>
-						<Link to='/register' className='main-btn'>
-							Register
-						</Link>
-
-						<Link to='/login' className='main-btn'>
-							Login / Demo User
+					<div className='flex flex-col items-center space-y-5'>
+						<div className='flex justify-center space-x-5'>
+							<Link to='/register' className='main-btn'>
+								Register
+							</Link>
+							<Link to='/login' className='main-btn'>
+								Login / Demo User
+							</Link>
+						</div>
+						<Link
+							to='/privacy-policy'
+							className='text-sm text-primaryBrandColor hover:underline'
+						>
+							Privacy Policy
 						</Link>
 					</div>
 				</div>
-				<img src={heroPic} className='w-3/4 md:w-full' />
+				<img src={heroPic} alt='Hero' className='w-3/4 md:w-full' />
 			</div>
 		</div>
 	);

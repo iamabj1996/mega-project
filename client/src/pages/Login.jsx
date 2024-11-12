@@ -1,4 +1,10 @@
-import { Link, Form, redirect, useNavigation } from 'react-router-dom';
+import {
+	Link,
+	Form,
+	redirect,
+	useNavigation,
+	useNavigate,
+} from 'react-router-dom';
 import { Logo, FormRow } from '../components';
 import customFetch from '../utils/customFetch';
 import { toast } from 'react-toastify';
@@ -12,7 +18,7 @@ export const action = async ({ request }) => {
 		const { user } = data;
 		toast.success('Login successful');
 		if (user.role === 'brand') {
-			return redirect('/dashboard/revenue');
+			return redirect('/dashboard/contract');
 		}
 		if (user.role === 'influencer') {
 			return redirect('/dashboard/messages');
@@ -29,7 +35,42 @@ export const action = async ({ request }) => {
 
 const Login = () => {
 	const navigation = useNavigation();
+	const navigate = useNavigate();
 	const isSubmitting = navigation.state === 'submitting';
+
+	const loginDemoBrandUser = async () => {
+		try {
+			const reponseData = await customFetch.post('/auth/login', {
+				email: 'demo.influencer@gmail.com',
+				password: '12345678',
+			});
+			const { data } = reponseData;
+			const { user } = data;
+			toast.success('Take a test drive as a brand');
+			if (user.role === 'brand') {
+				navigate('/dashboard/contract');
+			}
+		} catch (error) {
+			toast.error(error?.response?.data?.msg);
+		}
+	};
+
+	const loginDemoInfluencerUser = async () => {
+		try {
+			const reponseData = await customFetch.post('/auth/login', {
+				email: 'demo1.influencer@gmail.com',
+				password: '12345678',
+			});
+			const { data } = reponseData;
+			const { user } = data;
+			toast.success('Take a test drive as an creator');
+			if (user.role === 'influencer') {
+				navigate('/dashboard/contract');
+			}
+		} catch (error) {
+			toast.error(error?.response?.data?.msg);
+		}
+	};
 
 	return (
 		<div className='flex items-center justify-center min-h-screen px-4'>
@@ -56,17 +97,29 @@ const Login = () => {
 							{isSubmitting ? 'Submitting...' : 'Login'}
 						</button>
 
-						<Link to='/' className='main-btn w-full mt-6'>
-							Explore As Guest
-						</Link>
+						<button
+							type='button'
+							className='main-btn w-full mt-6'
+							onClick={loginDemoBrandUser}
+						>
+							Explore As Guest (Brand)
+						</button>
+
+						<button
+							type='button'
+							className='main-btn w-full mt-6'
+							onClick={loginDemoInfluencerUser}
+						>
+							Explore As Guest (Creator)
+						</button>
 						<p className='text-sm font-light text-lightTextIcons2 dark:text-darkTextIcons2 mt-2'>
 							Not a member yet?
-							<button
+							<Link
 								to='/register'
 								className='font-medium text-primaryBrandColor hover:underline underline-offset-4 ml-2'
 							>
 								Register here
-							</button>
+							</Link>
 						</p>
 					</Form>
 				</div>

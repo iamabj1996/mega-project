@@ -49,8 +49,12 @@ export const getSingleContract = async (req, res) => {
 	// Add the names to the contract object
 	const populatedContract = {
 		...contract.toObject(),
-		brand: brandUser ? brandUser.name : 'Unknown',
-		influencer: influencerUser ? influencerUser.name : 'Unknown',
+		brand: brandUser
+			? { id: brandUser.id, name: brandUser.name }
+			: { id: '', name: '' },
+		influencer: influencerUser
+			? { id: influencerUser.id, name: influencerUser.name }
+			: { id: '', name: '' },
 	};
 
 	res.status(StatusCodes.OK).json({ contract: populatedContract });

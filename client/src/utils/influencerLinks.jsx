@@ -19,11 +19,7 @@ const influencerLinks = [
 		label: 'Contracts',
 		href: 'contract',
 	},
-	{
-		icon: <LuDollarSign className='h-6 w-6' />,
-		label: 'Revenue',
-		href: 'revenue',
-	},
+
 	{
 		icon: <FaCreativeCommonsBy className='h-6 w-6' />,
 		label: 'Creators',

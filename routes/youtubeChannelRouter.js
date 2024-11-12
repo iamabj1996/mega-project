@@ -13,7 +13,10 @@ import {
 	validateIdParam,
 	validateYoutubeCallback,
 } from '../middleware/validationMiddleware.js';
-import { authorizePermissions } from '../middleware/authMiddleware.js';
+import {
+	authorizePermissions,
+	checkForTestUserBrandAndCreator,
+} from '../middleware/authMiddleware.js';
 
 router
 	.route('/')
@@ -21,15 +24,20 @@ router
 
 router
 	.route('/search_creators')
-	.get(authorizePermissions('brand', 'free_user'), getYoutubeChannelForSearch);
+	.get(authorizePermissions('brand'), getYoutubeChannelForSearch);
 
 router
 	.route('/auth')
-	.get(authorizePermissions('influencer'), authorizeYoutubeChannel);
+	.get(
+		checkForTestUserBrandAndCreator,
+		authorizePermissions('influencer'),
+		authorizeYoutubeChannel
+	);
 
 router
 	.route('/auth/google/callback')
 	.get(
+		checkForTestUserBrandAndCreator,
 		authorizePermissions('influencer'),
 		validateYoutubeCallback,
 		authorizeYoutubeCallback
@@ -38,6 +46,10 @@ router
 router
 	.route('/:id')
 	.get(authorizePermissions('brand', 'free_user'), getYoutubeChannel) // add validateIdParam HERE (DO NOT FORGET)
-	.delete(validateIdParam, deleteYoutubeChannel);
+	.delete(
+		checkForTestUserBrandAndCreator,
+		validateIdParam,
+		deleteYoutubeChannel
+	);
 
 export default router;

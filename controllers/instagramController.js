@@ -8,7 +8,7 @@ import { BadRequestError } from '../errors/customErrors.js';
 
 export const authorizeInstagram = async (req, res) => {
 	const state = '{st=state123abc,ds=123456789}';
-	const facebookOAuthUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${process.env.REDIRECT_URI_INSTA}&state=${state}&response_type=code&scope=email,public_profile,instagram_basic,instagram_manage_insights`;
+	const facebookOAuthUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${process.env.REDIRECT_URI_INSTA}&state=${state}&response_type=code&scope=email,public_profile,instagram_basic,instagram_manage_insights, business_management`;
 
 	res.status(StatusCodes.OK).json({ url: facebookOAuthUrl });
 };
@@ -32,8 +32,6 @@ export const authorizeInstagramCallback = async (req, res) => {
 	const tokenResponse = await axios.get(tokenUrl, { params: tokenParams });
 	const accessToken = tokenResponse.data.access_token;
 
-	console.log('accessToken', accessToken);
-
 	// Optionally, fetch user info with the access token
 	const userUrl =
 		'https://graph.facebook.com/me/accounts?fields=instagram_business_account,id,access_token';
@@ -43,10 +41,6 @@ export const authorizeInstagramCallback = async (req, res) => {
 
 	const userResponse = await axios.get(userUrl, { params: userParams });
 	const userInfo = userResponse.data;
-
-	console.log('userId', userInfo?.data[0]?.id);
-	console.log('pageToken', userInfo?.data[0]?.access_token);
-	console.log('instagramId', userInfo?.data[0]?.instagram_business_account?.id);
 
 	const instagramDataExist = await InstagramCreator.findOne({
 		instagramId: userInfo?.data[0]?.instagram_business_account?.id,
@@ -128,6 +122,90 @@ export const getAllInstagramPages = async (req, res) => {
 };
 
 export const getInstagramPagesForSearch = async (req, res) => {
-	const instagramPages = await InstagramCreator.find({});
-	res.status(StatusCodes.OK).json({ instagramPages });
+	const { search, categories, location } = req.query;
+
+	// Initialize the aggregation pipeline for both filtered count and results
+	const basePipeline = [
+		{
+			$lookup: {
+				from: 'users', // Collection name for the User model
+				localField: 'ownedBy',
+				foreignField: '_id',
+				as: 'userInfo',
+			},
+		},
+		{ $unwind: '$userInfo' },
+	];
+
+	if (categories) {
+		const categoryArray = categories.split(',').map((cat) => cat.trim());
+		basePipeline.push({
+			$match: {
+				'userInfo.categories': { $in: categoryArray },
+			},
+		});
+	}
+
+	if (location) {
+		basePipeline.push({
+			$match: {
+				'userInfo.location': { $regex: location, $options: 'i' },
+			},
+		});
+	}
+
+	if (search) {
+		basePipeline.push({
+			$match: {
+				$or: [
+					{ creatorName: { $regex: search, $options: 'i' } },
+					{ creatorUserName: { $regex: search, $options: 'i' } },
+				],
+			},
+		});
+	}
+
+	// Pipeline for getting total count of filtered results
+	const countPipeline = [...basePipeline, { $count: 'totalInstagramCreators' }];
+	const countResult = await InstagramCreator.aggregate(countPipeline);
+
+	// Get the filtered count or default to 0 if no documents match
+	const totalInstagramCreators = countResult[0]?.totalInstagramCreators || 0;
+
+	// Pipeline for getting actual InstagramCreator documents
+	const resultPipeline = [
+		...basePipeline,
+		{
+			$project: {
+				ownedBy: 1,
+				instagramId: 1,
+				creatorName: 1,
+				creatorUserName: 1,
+				profilePicture: 1,
+				followerCount: 1,
+				followingCount: 1,
+				mediaCount: 1,
+				insights: 1,
+				// Include other fields as needed
+			},
+		},
+	];
+
+	//setup pagination
+	const page = Number(req.query.page) || 1;
+	const limit = Number(req.query.limit) || 10;
+	const skip = (page - 1) * limit;
+
+	const instagramCreators = await InstagramCreator.aggregate(resultPipeline)
+		.limit(limit)
+		.skip(skip);
+	const numOfPages = Math.ceil(totalInstagramCreators / limit);
+
+	// Return the response with filtered count and results
+	res.status(StatusCodes.OK).json({
+		totalInstagramCreators,
+		numOfPages,
+		instagramCreators,
+		currentPage: page,
+	});
 };

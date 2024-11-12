@@ -1,6 +1,9 @@
 import { Router } from 'express';
 const router = Router();
-import { authorizePermissions } from '../middleware/authMiddleware.js';
+import {
+	authorizePermissions,
+	checkForTestUserBrandAndCreator,
+} from '../middleware/authMiddleware.js';
 
 import {
 	authorizeInstagram,
@@ -13,10 +16,18 @@ router.route('/').get(authorizePermissions('influencer'), getAllInstagramPages);
 
 router
 	.route('/auth')
-	.get(authorizePermissions('influencer'), authorizeInstagram);
+	.get(
+		checkForTestUserBrandAndCreator,
+		authorizePermissions('influencer'),
+		authorizeInstagram
+	);
 router
 	.route('/auth/callback')
-	.get(authorizePermissions('influencer'), authorizeInstagramCallback);
+	.get(
+		checkForTestUserBrandAndCreator,
+		authorizePermissions('influencer'),
+		authorizeInstagramCallback
+	);
 
 router
 	.route('/search_creators')

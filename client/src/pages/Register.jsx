@@ -1,5 +1,10 @@
 import { Link, Form, redirect, useNavigation } from 'react-router-dom';
-import { Logo, FormRow, CountrySelect } from '../components';
+import {
+	Logo,
+	FormRow,
+	CountrySelect,
+	MultipleCategorySelect,
+} from '../components';
 import customFetch from '../utils/customFetch';
 import { toast } from 'react-toastify';
 import { useState } from 'react';
@@ -21,6 +26,12 @@ export const action = async ({ request }) => {
 
 	delete data.confirmPassword;
 
+	data.categories = data.categories
+		? data.categories
+				.split(',')
+				.map((category) => category.trim().toLowerCase())
+		: [];
+
 	try {
 		await customFetch.post('/auth/register', data);
 		toast.success('Registration successful');
@@ -30,6 +41,103 @@ export const action = async ({ request }) => {
 		return error;
 	}
 };
+
+const categories = [
+	{
+		value: 'general-lifestyle-and-personal-interests',
+		label: 'General Lifestyle & Personal Interests',
+	},
+	{ value: 'fashion', label: 'Fashion' },
+	{ value: 'beauty-and-personal-care', label: 'Beauty & Personal Care' },
+	{ value: 'travel-and-adventure', label: 'Travel & Adventure' },
+	{ value: 'health-and-wellness', label: 'Health & Wellness' },
+	{ value: 'food-and-cooking', label: 'Food & Cooking' },
+	{ value: 'fitness-and-sports', label: 'Fitness & Sports' },
+	{ value: 'home-and-living', label: 'Home & Living' },
+	{ value: 'parenting-and-family', label: 'Parenting & Family' },
+	{ value: 'diy-and-crafts', label: 'DIY & Crafts' },
+	{
+		value: 'personal-development-and-motivation',
+		label: 'Personal Development & Motivation',
+	},
+	{ value: 'entertainment-and-culture', label: 'Entertainment & Culture' },
+	{ value: 'music', label: 'Music' },
+	{ value: 'film-and-television', label: 'Film & Television' },
+	{ value: 'books-and-literature', label: 'Books & Literature' },
+	{ value: 'art-and-design', label: 'Art & Design' },
+	{ value: 'photography-and-videography', label: 'Photography & Videography' },
+	{ value: 'gaming', label: 'Gaming' },
+	{ value: 'humor-and-memes', label: 'Humor & Memes' },
+	{ value: 'pop-culture-and-celebrities', label: 'Pop Culture & Celebrities' },
+	{ value: 'technology-and-business', label: 'Technology & Business' },
+	{ value: 'tech-and-gadgets', label: 'Tech & Gadgets' },
+	{
+		value: 'business-and-entrepreneurship',
+		label: 'Business & Entrepreneurship',
+	},
+	{ value: 'finance-and-investing', label: 'Finance & Investing' },
+	{ value: 'marketing-and-social-media', label: 'Marketing & Social Media' },
+	{ value: 'real-estate', label: 'Real Estate' },
+	{ value: 'education-and-learning', label: 'Education & Learning' },
+	{ value: 'science-and-innovation', label: 'Science & Innovation' },
+	{ value: 'luxury-and-lifestyle', label: 'Luxury & Lifestyle' },
+	{ value: 'cars-and-motorcycles', label: 'Cars & Motorcycles' },
+	{ value: 'pets-and-animals', label: 'Pets & Animals' },
+	{
+		value: 'spirituality-and-mindfulness',
+		label: 'Spirituality & Mindfulness',
+	},
+	{
+		value: 'environmental-and-sustainability',
+		label: 'Environmental & Sustainability',
+	},
+	{ value: 'fashion-design-and-modeling', label: 'Fashion Design & Modeling' },
+	{ value: 'interior-design-and-decor', label: 'Interior Design & Decor' },
+	{ value: 'weddings-and-events', label: 'Weddings & Events' },
+	{ value: 'social-causes-and-activism', label: 'Social Causes & Activism' },
+	{ value: 'mental-health-awareness', label: 'Mental Health Awareness' },
+	{ value: 'lgbtq-advocacy', label: 'LGBTQ+ Advocacy' },
+	{ value: 'diversity-and-inclusion', label: 'Diversity & Inclusion' },
+	{ value: 'women-empowerment', label: 'Women Empowerment' },
+	{ value: 'community-and-social-impact', label: 'Community & Social Impact' },
+	{ value: 'seasonal-and-trend-based', label: 'Seasonal & Trend-Based' },
+	{
+		value: 'holiday-and-seasonal-content',
+		label: 'Holiday & Seasonal Content',
+	},
+	{ value: 'lifestyle-trends', label: 'Lifestyle Trends' },
+	{ value: 'esports', label: 'Esports' },
+	{
+		value: 'outdoor-and-adventure-sports',
+		label: 'Outdoor & Adventure Sports',
+	},
+	{ value: 'agriculture-and-farming', label: 'Agriculture & Farming' },
+	{ value: 'skincare-and-dermatology', label: 'Skincare & Dermatology' },
+	{
+		value: 'automotive-modifications-and-accessories',
+		label: 'Automotive Modifications & Accessories',
+	},
+	{
+		value: 'cryptocurrency-and-blockchain',
+		label: 'Cryptocurrency & Blockchain',
+	},
+	{
+		value: 'body-positivity-and-self-care',
+		label: 'Body Positivity & Self-Care',
+	},
+	{ value: 'vintage-and-collectibles', label: 'Vintage & Collectibles' },
+	{
+		value: 'public-speaking-and-communication-skills',
+		label: 'Public Speaking & Communication Skills',
+	},
+	{ value: 'hospitality-and-tourism', label: 'Hospitality & Tourism' },
+	{ value: 'healthcare-and-medical', label: 'Healthcare & Medical' },
+	{ value: 'legal-and-compliance', label: 'Legal & Compliance' },
+	{
+		value: 'manufacturing-and-industrial',
+		label: 'Manufacturing & Industrial',
+	},
+];
 
 const Register = () => {
 	const navigation = useNavigation();
@@ -96,6 +204,19 @@ const Register = () => {
 									labelText='Location'
 									defaultValue={selectedCountry}
 									onChange={(value) => setSelectedCountry(value)}
+									mandatory={true}
+									disabled={true}
+								/>
+							</div>
+							<div className='col-span-1 md:col-span-2'>
+								<MultipleCategorySelect
+									name='categories'
+									labelText='Category'
+									options={categories}
+									selectedOptions={[]}
+									onChange={(selectedCategories) =>
+										console.log(selectedCategories)
+									}
 									mandatory={true}
 								/>
 							</div>

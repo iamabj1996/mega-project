@@ -17,6 +17,10 @@ const UserSchema = new mongoose.Schema({
 		enum: ['influencer', 'brand', 'free_user', 'admin', 'sub_admin'],
 		default: 'free_user',
 	},
+	categories: {
+		type: [],
+		default: [],
+	},
 });
 
 UserSchema.methods.toJSON = function () {

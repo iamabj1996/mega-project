@@ -3,14 +3,19 @@ import customFetch from '../utils/customFetch';
 import { Outlet, redirect, useLoaderData } from 'react-router-dom';
 import { createContext, useContext } from 'react';
 
-export const loader = async () => {
+export const loader = async ({ request }) => {
+	const params = Object.fromEntries([
+		...new URL(request.url).searchParams.entries(),
+	]);
 	try {
 		const { data } = await customFetch.get('/youtube_channels/search_creators');
 		const instagramResponse = await customFetch.get(
-			'/instagram/search_creators'
+			'/instagram/search_creators',
+			{
+				params,
+			}
 		);
-		const instagramPages = instagramResponse?.data?.instagramPages;
-		console.log('data2', instagramPages);
+		const instagramPages = instagramResponse?.data;
 		return { data, instagramPages };
 	} catch (error) {
 		toast.error(error?.response?.data?.msg);

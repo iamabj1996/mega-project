@@ -36,18 +36,32 @@ const transformData = (data) => {
 		},
 	};
 };
-export const action = async ({ request }) => {
+export const action = async ({ params, request }) => {
 	const formData = await request.formData();
 	const data = Object.fromEntries(formData);
 	const profileId = data.profileId;
 	delete data.profileId;
-	try {
-		await customFetch.patch(`/brand_profile/${profileId}`, transformData(data));
-		toast.success('Edit successful');
-		return redirect('/dashboard/brand-profile');
-	} catch (error) {
-		toast.error(error?.response?.data?.msg);
-		return error;
+	if (params.id === '-1') {
+		try {
+			await customFetch.post(`/brand_profile`, transformData(data));
+			toast.success('Edit successful');
+			return redirect('/dashboard/brand-profile');
+		} catch (error) {
+			toast.error(error?.response?.data?.msg);
+			return error;
+		}
+	} else {
+		try {
+			await customFetch.patch(
+				`/brand_profile/${profileId}`,
+				transformData(data)
+			);
+			toast.success('Edit successful');
+			return redirect('/dashboard/brand-profile');
+		} catch (error) {
+			toast.error(error?.response?.data?.msg);
+			return error;
+		}
 	}
 };
 

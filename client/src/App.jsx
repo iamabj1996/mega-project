@@ -7,7 +7,6 @@ import {
 	Error,
 	DashboardLayout,
 	SocialMedia,
-	Revenue,
 	Messages,
 	AllCreatorsMain,
 	SingleYtChannel,
@@ -21,6 +20,7 @@ import {
 	SingleContract,
 	CampaignCreation,
 	UgContentCreatorBoard,
+	PrivacyPolicy,
 } from './pages';
 
 import { action as registerAction } from './pages/Register';
@@ -35,7 +35,7 @@ import { loader as allCreatorsLoader } from './pages/AllCreatorsLayout';
 import { loader as singleYtChannelLoader } from './pages/SingleYtChannel';
 import { loader as messageLoader } from './pages/Messages';
 import { loader as allContractsLoader } from './pages/ContractLayout';
-import { loader as singleContractLoader } from './pages/SingleContract';
+import { loader as contractFormLoader } from './pages/ContractForm';
 import { loader as brandProfileLayoutLoader } from './pages/BrandProfileLayout';
 import InstagramCreatorInfo from './pages/InstagramCreatorInfo';
 
@@ -60,6 +60,10 @@ const router = createBrowserRouter([
 				element: <Register />,
 				action: registerAction,
 			},
+			{
+				path: 'privacy-policy',
+				element: <PrivacyPolicy />,
+			},
 
 			{
 				path: 'dashboard',
@@ -77,11 +81,6 @@ const router = createBrowserRouter([
 						path: 'messages',
 						element: <Messages />,
 						loader: messageLoader,
-					},
-
-					{
-						path: 'revenue',
-						element: <Revenue />,
 					},
 
 					{
@@ -111,15 +110,12 @@ const router = createBrowserRouter([
 								element: <AllContract />,
 							},
 							{
-								path: 'new-contract',
+								path: ':id',
 								element: <ContractForm />,
 								action: createContractAction,
+								loader: contractFormLoader,
 							},
-							{
-								path: ':id',
-								element: <SingleContract />,
-								loader: singleContractLoader,
-							},
+
 							{
 								path: 'new-campaign',
 								element: <CampaignCreation />,
@@ -146,10 +142,6 @@ const router = createBrowserRouter([
 								action: brandProfileEditAction,
 							},
 						],
-					},
-					{
-						path: 'instagram',
-						element: <InstagramCreatorInfo />,
 					},
 				],
 			},

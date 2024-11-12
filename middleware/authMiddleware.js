@@ -1,4 +1,5 @@
 import {
+	BadRequestError,
 	UnauthenicatedError,
 	UnauthorizedError,
 } from '../errors/customErrors.js';
@@ -10,7 +11,11 @@ export const authenticateUser = (req, res, next) => {
 
 	try {
 		const { userId, role } = verifyJWT(token);
-		req.user = { userId, role };
+		const testUser =
+			userId === '672db160d4afd14642fb0575' ||
+			userId === '672ed4b304b0b5887da2257b';
+
+		req.user = { userId, role, testUser };
 		next();
 	} catch (error) {
 		throw new UnauthenicatedError('Authentication is invalid');
@@ -25,4 +30,16 @@ export const authorizePermissions = (...roles) => {
 
 		next();
 	};
+};
+
+export const checkForTestUserBrandAndCreator = (req, res, next) => {
+	if (req?.user.testUser && req.user.role === 'brand')
+		throw new BadRequestError(
+			'Demo User, Join us as a brand with and exclusive offer of 3 months free trial!'
+		);
+	if (req?.user.testUser && req.user.role === 'influencer')
+		throw new BadRequestError(
+			'Demo User, Join us as a creator with and exclusive offer of 3 months free trial!'
+		);
+	next();
 };

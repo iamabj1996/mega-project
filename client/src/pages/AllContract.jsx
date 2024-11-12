@@ -7,15 +7,30 @@ import {
 	FiCalendar,
 	FiPlus,
 } from 'react-icons/fi';
+import { FaHandshake } from 'react-icons/fa';
+import { IoMdAddCircle } from 'react-icons/io';
 import { useContractContext } from './ContractLayout';
 import { Link } from 'react-router-dom';
+import { useDashboardContext } from './DashboardLayout';
 
 export default function AllContract() {
 	const { data } = useContractContext();
+	const { user } = useDashboardContext();
 	const { contracts } = data;
 	const [activeTab, setActiveTab] = useState('ongoing');
 	const [searchTerm, setSearchTerm] = useState('');
 	const [filterStatus, setFilterStatus] = useState('all');
+
+	// Calculate the total amount from contracts
+	const totalAmount = contracts?.reduce(
+		(sum, contract) => sum + contract.amount,
+		0
+	);
+
+	const onGoingOrProposalCount = contracts.filter(
+		(contract) =>
+			contract.status === 'Ongoing' || contract.status === 'Proposal'
+	).length;
 
 	const filteredContracts = contracts
 		.filter(
@@ -35,15 +50,26 @@ export default function AllContract() {
 	return (
 		<div className='min-h-screen bg-lightMainBg dark:bg-darkMainBg text-lightTextIcons1 dark:text-darkTextIcons1'>
 			<div className='container mx-auto px-4 py-8'>
-				<div className='flex justify-between items-center mb-8'>
+				<div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4'>
 					<h1 className='text-3xl font-bold'>Contract Management</h1>
-					<Link
-						to={'/dashboard/contract/new-contract'}
-						className='px-4 py-2 bg-primaryBrandColor text-white rounded-md hover:bg-opacity-90 transition-colors duration-200 flex items-center justify-center'
-					>
-						<FiPlus className='w-4 h-4 mr-2' />
-						Create New Contract
-					</Link>
+					{user?.role === 'brand' && (
+						<div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>
+							<Link
+								to={'/dashboard/contract/-1'}
+								className='px-4 py-2 bg-primaryBrandColor text-white rounded-md hover:bg-opacity-90 transition-colors duration-200 flex items-center justify-center'
+							>
+								<FiPlus className='w-4 h-4 mr-2' />
+								Create New Influencer Contract
+							</Link>
+							<Link
+								to={'/dashboard/contract/new-campaign'}
+								className='px-4 py-2 bg-primaryBrandColor text-white rounded-md hover:bg-opacity-90 transition-colors duration-200 flex items-center justify-center'
+							>
+								<IoMdAddCircle className='w-4 h-4 mr-2' />
+								Create New Campaign for UGC
+							</Link>
+						</div>
+					)}
 				</div>
 
 				{/* Search and Filter Bar */}
@@ -60,7 +86,7 @@ export default function AllContract() {
 					<select
 						value={filterStatus}
 						onChange={(e) => setFilterStatus(e.target.value)}
-						className=' md:w-48 shadow-sm appearance-none border border-gray-300 dark:border-gray-600 rounded-lg w-full py-2 px-3 text-lightTextIcons1 dark:text-darkTextIcons1 leading-tight focus:outline-none focus:ring-2 focus:ring-primaryBrandColor dark:bg-darkMainBg'
+						className='md:w-48 shadow-sm appearance-none border border-gray-300 dark:border-gray-600 rounded-lg w-full py-2 px-3 text-lightTextIcons1 dark:text-darkTextIcons1 leading-tight focus:outline-none focus:ring-2 focus:ring-primaryBrandColor dark:bg-darkMainBg'
 					>
 						<option value='all'>All Statuses</option>
 						<option value='ongoing'>Ongoing</option>
@@ -74,31 +100,33 @@ export default function AllContract() {
 				</div>
 
 				{/* Summary Dashboard */}
-				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
+				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8'>
+					<DashboardCard
+						icon={FaHandshake}
+						title='Total Contracts'
+						value={contracts && contracts.length}
+						change='Total active & past contracts'
+					/>
 					<DashboardCard
 						icon={FiDollarSign}
-						title='Total Contracts'
-						value='1,234'
-						change='+20.1% from last month'
+						title={user.role === 'brand' ? 'Expenditure' : 'Revenue'}
+						value={totalAmount}
+						change='Total Amount settled and to be settled'
 					/>
 					<DashboardCard
 						icon={FiUsers}
-						title='Total Budget'
-						value='$2.4M'
-						change='+15% from last quarter'
+						title={
+							user.role === 'brand' ? 'Active Creators' : 'Ongoing Contract'
+						}
+						value={onGoingOrProposalCount}
+						change='Contracts that are with status of proposal & ongoing'
 					/>
-					<DashboardCard
-						icon={FiUsers}
-						title='Active Influencers'
-						value='573'
-						change='+201 since last year'
-					/>
-					<DashboardCard
+					{/* <DashboardCard
 						icon={FiCalendar}
 						title='Upcoming Deadlines'
 						value='12'
 						change='3 due this week'
-					/>
+					/> */}
 				</div>
 
 				{/* Contract Tabs and Tables */}
@@ -214,7 +242,7 @@ function ContractTable({ contracts, type }) {
 								{contract?.currency} {contract?.amount.toLocaleString()}
 							</td>
 							<td className='px-6 py-4 whitespace-nowrap text-sm'>
-								<div className='flex spbuttonace-x-2'>
+								<div className='flex space-x-2'>
 									<Link
 										to={`/dashboard/contract/${contract._id}`}
 										className='px-3 py-1 bg-primaryBrandColor text-white rounded hover:bg-opacity-90 transition-colors duration-200'

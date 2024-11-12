@@ -22,7 +22,6 @@ export const loader = async () => {
 export const action = async ({ request }) => {
 	const formData = await request.formData();
 	const data = Object.fromEntries(formData);
-	console.log('insideData', data);
 	try {
 		if (data.platform === 'youtube') {
 			const { data } = await customFetch.get('/youtube_channels/auth');

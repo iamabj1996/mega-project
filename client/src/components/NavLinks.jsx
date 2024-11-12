@@ -14,7 +14,6 @@ const NavLinks = () => {
 					role !== 'influencer' &&
 					(item.href === 'messages' ||
 						item.href === 'contract' ||
-						item.href === 'revenue' ||
 						item.href === '.' ||
 						item.href === 'brand-profile')
 				) {

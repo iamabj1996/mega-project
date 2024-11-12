@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
-import { Form, redirect } from 'react-router-dom';
+import { Form, redirect, useLoaderData, useParams } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import customFetch from '../utils/customFetch';
 import { toast } from 'react-toastify';
+import { useDashboardContext } from './DashboardLayout';
 
-export const action = async ({ request }) => {
+export const loader = async ({ params }) => {
+	if (params.id === '-1') return null;
+	try {
+		const { data } = await customFetch.get(`/contract/${params.id}`);
+		return { data };
+	} catch (error) {
+		toast.error(error?.response?.data?.msg);
+		return error;
+	}
+};
+
+export const action = async ({ params, request }) => {
 	const formData = await request.formData();
 	const data = Object.fromEntries(formData);
 
@@ -38,25 +50,54 @@ export const action = async ({ request }) => {
 	// Add the new deliverables array to the data
 	const finalData = { ...data, deliverables };
 
-	console.log('Transformed Data:', finalData);
-
-	try {
-		await customFetch.post(`/contract`, finalData);
-		toast.success('Contract created successfully and sent to creator as well');
-		return redirect('/dashboard/contract');
-	} catch (error) {
-		toast.error(error?.response?.data?.msg);
-		return error;
+	if (params?.id === 1) {
+		try {
+			await customFetch.post(`/contract`, finalData);
+			toast.success(
+				'Contract created successfully and sent to creator as well'
+			);
+			return redirect('/dashboard/contract');
+		} catch (error) {
+			toast.error(error?.response?.data?.msg);
+			return error;
+		}
+	} else {
+		finalData?.brandName && delete finalData.brandName;
+		finalData?.influencerName && delete finalData.influencerName;
+		try {
+			await customFetch.patch(`/contract/${params?.id}`, finalData);
+			toast.success(
+				'Contract Modified successfully and sent to creator as well'
+			);
+			return redirect(`/dashboard/contract/${params?.id}`);
+		} catch (error) {
+			toast.error(error?.response?.data?.msg);
+			return error;
+		}
 	}
 };
 
 export default function ContractForm() {
-	const [startDate, setStartDate] = useState(null);
-	const [endDate, setEndDate] = useState(null);
-	const [nextMilestone, setNextMilestone] = useState(null);
-	const [deliverables, setDeliverables] = useState([
-		{ platform: '', contentType: '', quantity: 1 },
-	]);
+	const { user } = useDashboardContext();
+	const { id } = useParams();
+	const contractData = useLoaderData();
+	const { data } = contractData || {};
+	const contract = data?.contract;
+
+	const isReadOnly = id === '-1';
+
+	const [startDate, setStartDate] = useState(
+		!isReadOnly && contract?.startDate
+	);
+	const [endDate, setEndDate] = useState(!isReadOnly && contract?.endDate);
+	const [nextMilestone, setNextMilestone] = useState(
+		!isReadOnly && contract?.nextMilestone
+	);
+	const [deliverables, setDeliverables] = useState(
+		!isReadOnly && contract?.deliverables?.length > 0
+			? contract.deliverables
+			: [{ platform: '', contentType: '', quantity: 1 }]
+	);
 
 	const handleDeliverableChange = (index, field, value) => {
 		const newDeliverables = [...deliverables];
@@ -80,12 +121,35 @@ export default function ContractForm() {
 		<div className='min-h-screen bg-lightMainBg dark:bg-darkMainBg text-lightTextIcons1 dark:text-darkTextIcons1'>
 			<div className='container mx-auto px-4 py-8'>
 				<h1 className='text-3xl font-bold mb-8 text-primaryBrandColor'>
-					Create New Contract
+					{isReadOnly ? 'Create New Contract' : 'Edit Contract'}{' '}
 				</h1>
 				<Form
 					method='post'
 					className='bg-lightCardBg dark:bg-darkCardBg shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4'
 				>
+					<div className='mb-6'>
+						<label
+							className='block text-lightTextIcons1 dark:text-darkTextIcons1 text-sm font-bold mb-2'
+							htmlFor='influencerName'
+						>
+							Brand Name
+						</label>
+						<input
+							className='shadow-sm appearance-none border border-gray-300 dark:border-gray-600 rounded-lg w-full py-2 px-3 text-lightTextIcons1 dark:text-darkTextIcons1 leading-tight focus:outline-none focus:ring-2 focus:ring-primaryBrandColor dark:bg-darkMainBg'
+							type='text'
+							placeholder='Enter influencer name'
+							name='brandName'
+							required
+							defaultValue={!isReadOnly ? contract?.brand?.name : ''}
+							readOnly={!isReadOnly}
+						/>
+					</div>
+					<input
+						type='text'
+						defaultValue={!isReadOnly && contract?.brand?.id}
+						hidden={true}
+						name='brand'
+					/>
 					<div className='mb-6'>
 						<label
 							className='block text-lightTextIcons1 dark:text-darkTextIcons1 text-sm font-bold mb-2'
@@ -97,10 +161,20 @@ export default function ContractForm() {
 							className='shadow-sm appearance-none border border-gray-300 dark:border-gray-600 rounded-lg w-full py-2 px-3 text-lightTextIcons1 dark:text-darkTextIcons1 leading-tight focus:outline-none focus:ring-2 focus:ring-primaryBrandColor dark:bg-darkMainBg'
 							type='text'
 							placeholder='Enter influencer name'
-							name='influencer'
+							name='influencerName'
 							required
+							defaultValue={!isReadOnly ? contract?.influencer?.name : ''}
+							readOnly={!isReadOnly}
 						/>
 					</div>
+
+					<input
+						type='text'
+						defaultValue={!isReadOnly && contract?.influencer?.id}
+						hidden={true}
+						name='influencer'
+					/>
+
 					<div className='mb-6'>
 						<label
 							className='block text-lightTextIcons1 dark:text-darkTextIcons1 text-sm font-bold mb-2'
@@ -113,7 +187,9 @@ export default function ContractForm() {
 							type='text'
 							placeholder='Enter campaign name'
 							name='campaign'
+							defaultValue={!isReadOnly ? contract?.campaign : ''}
 							required
+							readOnly={!isReadOnly}
 						/>
 					</div>
 					<div className='mb-6'>
@@ -126,6 +202,8 @@ export default function ContractForm() {
 						<select
 							className='shadow-sm appearance-none border border-gray-300 dark:border-gray-600 rounded-lg w-full py-2 px-3 text-lightTextIcons1 dark:text-darkTextIcons1 leading-tight focus:outline-none focus:ring-2 focus:ring-primaryBrandColor dark:bg-darkMainBg'
 							name='status'
+							defaultValue={isReadOnly ? 'Proposal' : contract?.status}
+							disabled={isReadOnly}
 							required
 						>
 							<option value=''>Select status</option>
@@ -148,6 +226,7 @@ export default function ContractForm() {
 								placeholderText='Select start date'
 								selected={startDate}
 								onChange={(date) => setStartDate(date)}
+								readOnly={user.role !== 'brand'}
 							/>
 						</div>
 						<div className='w-full md:w-1/2 px-3'>
@@ -163,6 +242,7 @@ export default function ContractForm() {
 								placeholderText='Select end date'
 								selected={endDate}
 								onChange={(date) => setEndDate(date)}
+								readOnly={user.role !== 'brand'}
 							/>
 						</div>
 					</div>
@@ -180,6 +260,7 @@ export default function ContractForm() {
 								placeholder='Enter amount'
 								name='amount'
 								required
+								defaultValue={!isReadOnly && contract?.amount}
 							/>
 						</div>
 						<div className='w-full md:w-1/2 px-3'>
@@ -193,6 +274,7 @@ export default function ContractForm() {
 								className='shadow-sm appearance-none border border-gray-300 dark:border-gray-600 rounded-lg w-full py-2 px-3 text-lightTextIcons1 dark:text-darkTextIcons1 leading-tight focus:outline-none focus:ring-2 focus:ring-primaryBrandColor dark:bg-darkMainBg'
 								name='currency'
 								required
+								defaultValue={!isReadOnly && contract?.currency}
 							>
 								<option value=''>Select currency</option>
 								<option value='INR'>INR</option>
@@ -213,6 +295,8 @@ export default function ContractForm() {
 						<select
 							className='shadow-sm appearance-none border border-gray-300 dark:border-gray-600 rounded-lg w-full py-2 px-3 text-lightTextIcons1 dark:text-darkTextIcons1 leading-tight focus:outline-none focus:ring-2 focus:ring-primaryBrandColor dark:bg-darkMainBg'
 							name='stage'
+							defaultValue={isReadOnly ? 'Proposal Sent' : contract?.stage}
+							disabled={isReadOnly}
 							required
 						>
 							<option value=''>Select stage</option>
@@ -237,6 +321,7 @@ export default function ContractForm() {
 							placeholderText='Select next milestone'
 							selected={nextMilestone}
 							onChange={(date) => setNextMilestone(date)}
+							readOnly={user.role !== 'brand'}
 						/>
 					</div>
 					<div className='mb-6'>
@@ -265,6 +350,7 @@ export default function ContractForm() {
 												)
 											}
 											required
+											disabled={user?.role !== 'brand'}
 										>
 											<option value=''>Select platform</option>
 											<option value='Instagram'>Instagram</option>
@@ -284,7 +370,7 @@ export default function ContractForm() {
 												)
 											}
 											required
-											disabled={!deliverable.platform}
+											disabled={!deliverable.platform || user?.role !== 'brand'}
 										>
 											<option value=''>Select content type</option>
 											<option value='Video'>Video</option>
@@ -307,7 +393,9 @@ export default function ContractForm() {
 											}
 											min='1'
 											required
-											disabled={!deliverable.contentType}
+											disabled={
+												!deliverable.contentType || user?.role !== 'brand'
+											}
 										/>
 									</div>
 								</div>
@@ -316,6 +404,7 @@ export default function ContractForm() {
 										type='button'
 										onClick={() => removeDeliverable(index)}
 										className='mt-2 text-red-500 hover:text-red-700'
+										disabled={user?.role !== 'brand'}
 									>
 										Remove
 									</button>
@@ -337,6 +426,8 @@ export default function ContractForm() {
 						<select
 							className='shadow-sm appearance-none border border-gray-300 dark:border-gray-600 rounded-lg w-full py-2 px-3 text-lightTextIcons1 dark:text-darkTextIcons1 leading-tight focus:outline-none focus:ring-2 focus:ring-primaryBrandColor dark:bg-darkMainBg'
 							name='paymentStatus'
+							defaultValue={isReadOnly ? 'Pending' : contract?.paymentStatus}
+							disabled={isReadOnly || user?.role !== 'brand'}
 							required
 						>
 							<option value=''>Select payment status</option>
@@ -347,7 +438,7 @@ export default function ContractForm() {
 					</div>
 					<div className='flex items-center justify-between'>
 						<button className='main-btn' type='submit'>
-							Create Contract
+							{isReadOnly ? 'Create Contract' : 'Edit Contract'}
 						</button>
 					</div>
 				</Form>

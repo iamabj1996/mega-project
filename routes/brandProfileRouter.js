@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
 	authenticateUser,
 	authorizePermissions,
+	checkForTestUserBrandAndCreator,
 } from '../middleware/authMiddleware.js';
 import {
 	createNewBrandProfile,
@@ -27,6 +28,7 @@ router
 	)
 	.post(
 		authenticateUser,
+		checkForTestUserBrandAndCreator,
 		authorizePermissions('brand'),
 		validateCreateBrandProfile,
 		createNewBrandProfile

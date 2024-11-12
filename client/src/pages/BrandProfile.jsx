@@ -20,9 +20,12 @@ export default function BrandProfile() {
 				<p className='text-lg text-center max-w-md'>
 					Create your brand profile and start connecting with amazing creators.
 				</p>
-				<button className='bg-primaryBrandColor text-white px-6 py-3 rounded-full text-base font-semibold hover:bg-primaryBrandColor/90 transition-colors'>
+				<Link
+					to={`edit/-1`}
+					className='bg-primaryBrandColor text-white px-6 py-3 rounded-full text-base font-semibold hover:bg-primaryBrandColor/90 transition-colors'
+				>
 					Create Brand Profile
-				</button>
+				</Link>
 			</div>
 		);
 	}

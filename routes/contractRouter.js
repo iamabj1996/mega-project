@@ -5,7 +5,10 @@ import {
 	getSingleContract,
 	updateContract,
 } from '../controllers/contractController.js';
-import { authorizePermissions } from '../middleware/authMiddleware.js';
+import {
+	authorizePermissions,
+	checkForTestUserBrandAndCreator,
+} from '../middleware/authMiddleware.js';
 import {
 	validateContractUpdate,
 	validateCreateContractInput,
@@ -22,11 +25,17 @@ router.get(
 
 router.post(
 	'/',
+	checkForTestUserBrandAndCreator,
 	authorizePermissions('brand'),
 	validateCreateContractInput,
 	createNewContract
 );
 
-router.patch('/:id', validateContractUpdate, updateContract);
+router.patch(
+	'/:id',
+	checkForTestUserBrandAndCreator,
+	validateContractUpdate,
+	updateContract
+);
 
 export default router;
