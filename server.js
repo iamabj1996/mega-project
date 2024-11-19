@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import Razorpay from 'razorpay';
 import path from 'path';
 
 //Routers
@@ -19,6 +20,7 @@ import messageRouter from './routes/messageRouter.js';
 import contractRouter from './routes/contractRouter.js';
 import brandProfileRouter from './routes/brandProfileRouter.js';
 import instagramRouter from './routes/instagramRouter.js';
+import paymentRouter from './routes/paymentRouter.js';
 
 //Middlwares
 import errorHandlerMiddleware from './middleware/errorHandlerMiddleware.js';
@@ -59,6 +61,7 @@ app.use('/api/v1/message', authenticateUser, messageRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/contract', authenticateUser, contractRouter);
 app.use('/api/v1/brand_profile', brandProfileRouter);
+app.use('/api/v1/payment', paymentRouter);
 
 app.get('*', (req, res) => {
 	res.sendFile(path.resolve(__dirname, './public', 'index.html'));
@@ -72,6 +75,11 @@ app.use('*', (req, res) => {
 app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 5100;
+
+export const razorpayInstance = new Razorpay({
+	key_id: 'rzp_test_rjGkHnDnqCUBkd',
+	key_secret: '0gN6WPD3LI5zaOfhkCJTzXG4',
+});
 
 try {
 	await mongoose.connect(process.env.MONGO_URL);

@@ -32,6 +32,7 @@ export const authorizeInstagramCallback = async (req, res) => {
 	const tokenResponse = await axios.get(tokenUrl, { params: tokenParams });
 	const accessToken = tokenResponse.data.access_token;
 
+	console.log('tokenResponse', tokenResponse);
 	const longLivedTokenUrl =
 		'https://graph.facebook.com/v21.0/oauth/access_token';
 	const longLivedTokenParams = {

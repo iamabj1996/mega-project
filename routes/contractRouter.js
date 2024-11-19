@@ -7,6 +7,7 @@ import {
 } from '../controllers/contractController.js';
 import {
 	authorizePermissions,
+	checkForBrandSubscriptionActive,
 	checkForTestUserBrandAndCreator,
 } from '../middleware/authMiddleware.js';
 import {
@@ -27,6 +28,7 @@ router.post(
 	'/',
 	checkForTestUserBrandAndCreator,
 	authorizePermissions('brand'),
+	checkForBrandSubscriptionActive,
 	validateCreateContractInput,
 	createNewContract
 );

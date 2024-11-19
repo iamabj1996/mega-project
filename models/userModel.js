@@ -21,6 +21,14 @@ const UserSchema = new mongoose.Schema({
 		type: [],
 		default: [],
 	},
+
+	subscription: {
+		id: String,
+		status: {
+			type: String,
+			default: 'inactive',
+		},
+	},
 });
 
 UserSchema.methods.toJSON = function () {

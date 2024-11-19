@@ -21,7 +21,11 @@ export const login = async (req, res) => {
 
 	if (!isValidUser) throw new UnauthenicatedError('Invalid Credentials');
 
-	const token = createJWT({ userId: user._id, role: user.role });
+	const token = createJWT({
+		userId: user._id,
+		role: user.role,
+		subscriptionStatus: user.subscription.status,
+	});
 
 	const oneDay = 1000 * 60 * 60 * 24;
 

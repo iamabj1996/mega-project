@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
-import { Form, redirect, useLoaderData, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import {
+	Form,
+	redirect,
+	useActionData,
+	useLoaderData,
+	useParams,
+} from 'react-router-dom';
 import DatePicker from 'react-datepicker';
+import image from '../assets/ab3.png';
 import 'react-datepicker/dist/react-datepicker.css';
 import customFetch from '../utils/customFetch';
 import { toast } from 'react-toastify';
 import { useDashboardContext } from './DashboardLayout';
+import BrandSubscriptionModal from '../components/BrandSubscriptionModal';
 
 export const loader = async ({ params }) => {
 	if (params.id === '-1') return null;
@@ -50,14 +58,20 @@ export const action = async ({ params, request }) => {
 	// Add the new deliverables array to the data
 	const finalData = { ...data, deliverables };
 
-	if (params?.id === 1) {
+	console.log('params.id', params.id === '-1');
+
+	if (params?.id === '-1') {
 		try {
 			await customFetch.post(`/contract`, finalData);
+			console.log('finalData', finalData);
 			toast.success(
 				'Contract created successfully and sent to creator as well'
 			);
 			return redirect('/dashboard/contract');
 		} catch (error) {
+			if (error?.response?.data?.msg.startsWith('Become a paid customer')) {
+				return { showSubscriptionModal: true };
+			}
 			toast.error(error?.response?.data?.msg);
 			return error;
 		}
@@ -78,7 +92,10 @@ export const action = async ({ params, request }) => {
 };
 
 export default function ContractForm() {
-	const { user } = useDashboardContext();
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const actionData = useActionData();
+	const { user, logoutUser } = useDashboardContext();
+	console.log('loggingUser', user);
 	const { id } = useParams();
 	const contractData = useLoaderData();
 	const { data } = contractData || {};
@@ -116,6 +133,62 @@ export default function ContractForm() {
 		const newDeliverables = deliverables.filter((_, i) => i !== index);
 		setDeliverables(newDeliverables);
 	};
+
+	const handleSubscribe = async () => {
+		try {
+			const { data } = await customFetch.get(`/payment/subscribe`);
+			console.log('data', data);
+			console.log('subscriptionId', data.subscriptionId);
+
+			if (data.subscriptionId !== undefined || data.subscriptionId !== '') {
+				const subscriptionId = String(data.subscriptionId); // Ensure it's a string
+
+				const openPopup = () => {
+					const options = {
+						key: 'rzp_test_rjGkHnDnqCUBkd',
+						subscription_id: subscriptionId,
+						name: 'Abronic Link',
+						description: 'Brand Premium Subscription',
+						image: image,
+						prefill: {
+							name: user.name, // Your customer's name
+							email: user.email,
+							contact: '', // Provide the customer's phone number for better conversion rates
+						},
+						handler: async function (response) {
+							alert(JSON.stringify(response));
+							await customFetch.get(
+								`payment/subscription-verification/${response.razorpay_payment_id}/${response.razorpay_subscription_id}/${response.razorpay_signature}`
+							);
+						},
+						theme: {
+							color: '#00853D',
+						},
+					};
+
+					const razor = new window.Razorpay(options);
+					razor.open();
+					// razor.on('payment.success', function (resp) {
+					// 	toast.success('Payment Successful, please login again');
+					// 	logoutUser();
+					// });
+				};
+
+				openPopup();
+			}
+		} catch (error) {
+			toast.error(error?.response?.data?.msg || 'An error occurred');
+		}
+
+		console.log('User subscribed');
+		setIsModalOpen(false);
+	};
+
+	useEffect(() => {
+		if (actionData?.showSubscriptionModal) {
+			setIsModalOpen(true);
+		}
+	}, [actionData]);
 
 	return (
 		<div className='min-h-screen bg-lightMainBg dark:bg-darkMainBg text-lightTextIcons1 dark:text-darkTextIcons1'>
@@ -443,6 +516,13 @@ export default function ContractForm() {
 					</div>
 				</Form>
 			</div>
+			{isModalOpen && (
+				<BrandSubscriptionModal
+					isOpen={isModalOpen}
+					onClose={() => setIsModalOpen(false)}
+					onSubscribe={handleSubscribe}
+				/>
+			)}
 		</div>
 	);
 }
